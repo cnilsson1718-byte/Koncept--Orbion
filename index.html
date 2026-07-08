@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orbion — Concept</title>
+<style>
+  :root{
+    --void:#04060d; --void-2:#070b16;
+    --panel:#0b1020; --panel-edge:#16203a;
+    --glow:#5aa8ff; --glow-soft:#7ec4ff;
+    --ink:#eaf1ff; --ink-2:#9fb0d0; --ink-3:#5c6b8c;
+    --ok:#4fd6a0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:
+      radial-gradient(1200px 800px at 70% -10%, #0a1226 0%, rgba(10,18,38,0) 60%),
+      radial-gradient(900px 700px at 10% 110%, #0a1020 0%, rgba(10,16,32,0) 55%),
+      linear-gradient(180deg, var(--void) 0%, var(--void-2) 100%);
+    color:var(--ink);
+    font-family:'Segoe UI', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    min-height:100%; overflow-x:hidden; -webkit-font-smoothing:antialiased;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    background-image:
+      radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,.5), transparent),
+      radial-gradient(1px 1px at 80% 20%, rgba(255,255,255,.35), transparent),
+      radial-gradient(1px 1px at 60% 70%, rgba(255,255,255,.4), transparent),
+      radial-gradient(1px 1px at 35% 80%, rgba(255,255,255,.3), transparent),
+      radial-gradient(1px 1px at 90% 60%, rgba(255,255,255,.3), transparent),
+      radial-gradient(1px 1px at 12% 65%, rgba(255,255,255,.25), transparent);
+    opacity:.7;
+  }
+  .stage{position:relative;z-index:1;max-width:1040px;margin:0 auto;padding:24px 20px 60px;min-height:100vh;display:flex;flex-direction:column}
+
+  /* ---- Logo navigator ---- */
+  .topbar{display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:10px}
+  .navigator{display:flex;flex-direction:column;align-items:center;gap:10px}
+  .dial{position:relative;width:172px;height:172px;flex:0 0 auto;touch-action:none}
+  .dial .track{position:absolute;inset:10px;border:2px solid rgba(120,196,255,.45);border-radius:50%}
+  .dial .track-glow{position:absolute;inset:10px;border-radius:50%;box-shadow:0 0 34px rgba(90,168,255,.32) inset, 0 0 20px rgba(90,168,255,.28)}
+  .dial .tick{position:absolute;top:50%;left:50%;width:3px;height:10px;background:rgba(120,196,255,.6);transform-origin:center;border-radius:2px}
+  .dial .hub{position:absolute;top:50%;left:50%;width:64px;height:64px;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle at 40% 35%, #cfe6ff, #4d8fe0 60%, #1b5299);box-shadow:0 0 34px rgba(90,168,255,.6)}
+  .dial .ball{position:absolute;top:50%;left:50%;width:24px;height:24px;margin:-12px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff,#7ec4ff 70%);box-shadow:0 0 24px 6px rgba(126,196,255,.95);cursor:grab;z-index:3;border:1.5px solid rgba(255,255,255,.6)}
+  .dial .ball:active{cursor:grabbing}
+  .dial .ball::after{content:"";position:absolute;inset:-16px;border-radius:50%}
+  .wordmark{display:flex;flex-direction:column;gap:3px;align-items:center;text-align:center}
+  .wordmark .name{font-size:26px;letter-spacing:.16em;font-weight:600;background:linear-gradient(180deg,#fff,#b9d4ff);-webkit-background-clip:text;background-clip:text;color:transparent;line-height:1}
+  .wordmark .hint{font-size:11px;letter-spacing:.05em;color:var(--ink-3)}
+  .concept-tag{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3);border:1px solid var(--panel-edge);border-radius:999px;padding:6px 12px;white-space:nowrap}
+
+  /* ---- Slides ---- */
+  .slides{position:relative;flex:1;display:flex;align-items:center;justify-content:center;min-height:60vh}
+  .slide{display:none;width:100%;animation:fade .45s ease}
+  .slide.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  .eyebrow{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-3);margin-bottom:12px;display:flex;align-items:center;gap:10px}
+  h1{font-size:clamp(22px,3vw,32px);line-height:1.15;font-weight:600;letter-spacing:-.01em;margin-bottom:12px;color:var(--ink)}
+  .sub{font-size:15px;color:var(--ink-2);max-width:520px;line-height:1.55}
+
+  .badge-live{display:inline-flex;align-items:center;gap:7px;font-size:11px;color:var(--ok);border:1px solid rgba(79,214,160,.3);background:rgba(79,214,160,.07);border-radius:999px;padding:5px 11px;margin-bottom:14px}
+  .badge-live .pulse{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 8px var(--ok);animation:pulse 1.8s infinite}
+  .badge-soon{display:inline-flex;align-items:center;gap:7px;font-size:11px;color:var(--glow-soft);border:1px solid rgba(90,168,255,.3);background:rgba(90,168,255,.07);border-radius:999px;padding:5px 11px;margin-bottom:14px}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+  .panel{background:linear-gradient(180deg, rgba(13,19,38,.9), rgba(9,14,28,.9));border:1px solid var(--panel-edge);border-radius:18px;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.03)}
+
+  /* 1 · hero with atom */
+  .hero-wrap{display:grid;grid-template-columns:1fr .85fr;gap:36px;align-items:center}
+  @media(max-width:760px){.hero-wrap{grid-template-columns:1fr;gap:20px}}
+  .atom{position:relative;aspect-ratio:1;max-width:300px;width:100%;margin:0 auto}
+  .atom .nucleus{position:absolute;top:50%;left:50%;width:26px;height:26px;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle at 40% 35%, #eaf4ff, #5aa8ff 55%, #1b5299);box-shadow:0 0 26px rgba(90,168,255,.8)}
+  .atom .orb{position:absolute;top:50%;left:50%;border:1.4px solid rgba(120,196,255,.4);border-radius:50%;transform-style:preserve-3d}
+  .atom .o1{width:100%;height:38%;transform:translate(-50%,-50%) rotate(0deg)}
+  .atom .o2{width:100%;height:38%;transform:translate(-50%,-50%) rotate(60deg)}
+  .atom .o3{width:100%;height:38%;transform:translate(-50%,-50%) rotate(120deg)}
+  .atom .e{position:absolute;width:9px;height:9px;border-radius:50%;background:var(--glow-soft);box-shadow:0 0 12px 3px rgba(126,196,255,.9);top:50%;left:50%;margin:-4.5px}
+  .spin-e1{animation:orbit1 3.4s linear infinite}
+  .spin-e2{animation:orbit2 4.6s linear infinite}
+  .spin-e3{animation:orbit3 5.8s linear infinite}
+  @keyframes orbit1{from{transform:rotate(0deg) translateX(150px) rotate(0deg)}to{transform:rotate(360deg) translateX(150px) rotate(-360deg)}}
+  @keyframes orbit2{from{transform:rotate(60deg) translateX(150px) rotate(0deg)}to{transform:rotate(420deg) translateX(150px) rotate(-360deg)}}
+  @keyframes orbit3{from{transform:rotate(120deg) translateX(150px) rotate(0deg)}to{transform:rotate(480deg) translateX(150px) rotate(-360deg)}}
+  .feat-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+  .feat{font-size:13px;color:var(--ink-2);border:1px solid var(--panel-edge);border-radius:999px;padding:8px 14px}
+
+  /* 2 · training — complex atom */
+  .train-atom{position:relative;height:320px;display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:12px}
+  #trainCanvas{position:absolute;inset:0;width:100%;height:100%;z-index:0}
+  .ta-core{position:relative;z-index:4;width:70px;height:70px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;letter-spacing:.16em;font-weight:600;color:#eaf4ff;background:radial-gradient(circle at 40% 35%, #eaf4ff, #4d8fe0 55%, #14406e);box-shadow:0 0 44px rgba(90,168,255,.75),0 0 90px rgba(90,168,255,.35)}
+  .ta-orbit{position:absolute;top:50%;left:50%;border:1.2px solid rgba(120,196,255,.32);border-radius:50%;transform-style:preserve-3d;z-index:2}
+  .tao1{width:150px;height:56px;margin:-28px -75px;transform:rotate(0deg);animation:tspin1 6s linear infinite}
+  .tao2{width:210px;height:80px;margin:-40px -105px;transform:rotate(60deg);border-color:rgba(120,196,255,.26);animation:tspin2 8s linear infinite}
+  .tao3{width:270px;height:104px;margin:-52px -135px;transform:rotate(120deg);border-color:rgba(120,196,255,.2);animation:tspin1 10s linear infinite reverse}
+  .tao4{width:190px;height:190px;margin:-95px -95px;border-color:rgba(120,196,255,.14);animation:tspin3 14s linear infinite}
+  .tao5{width:300px;height:300px;margin:-150px -150px;border-color:rgba(120,196,255,.08);animation:tspin3 20s linear infinite reverse}
+  @keyframes tspin1{to{transform:rotate(360deg)}}
+  @keyframes tspin2{to{transform:rotate(420deg)}}
+  @keyframes tspin3{to{transform:rotate(360deg)}}
+  .ta-e{position:absolute;top:50%;left:0;width:8px;height:8px;margin:-4px;border-radius:50%;background:var(--glow-soft);box-shadow:0 0 12px 3px rgba(126,196,255,.9)}
+  .tao1 .ta-e{animation:runOrbit1 6s linear infinite}
+  .tao2 .ta-e{animation:runOrbit2 8s linear infinite}
+  .tao3 .ta-e{animation:runOrbit3 10s linear infinite}
+  @keyframes runOrbit1{from{left:0;top:50%}25%{left:50%;top:0}50%{left:100%;top:50%}75%{left:50%;top:100%}to{left:0;top:50%}}
+  @keyframes runOrbit2{from{left:0;top:50%}25%{left:50%;top:0}50%{left:100%;top:50%}75%{left:50%;top:100%}to{left:0;top:50%}}
+  @keyframes runOrbit3{from{left:0;top:50%}25%{left:50%;top:0}50%{left:100%;top:50%}75%{left:50%;top:100%}to{left:0;top:50%}}
+  .ta-status{position:absolute;bottom:14px;left:0;right:0;text-align:center;font-size:12px;color:var(--ink-2);letter-spacing:.02em;z-index:4}
+
+  /* graph */
+  .net-wrap{margin-top:8px;border-radius:16px;overflow:hidden;border:1px solid var(--panel-edge);background:radial-gradient(700px 340px at 50% 40%, rgba(20,34,66,.55), rgba(6,10,20,.6))}
+  svg{display:block;width:100%;height:auto}
+  .edge{stroke:rgba(90,168,255,.22);stroke-width:.8}
+  .edge-lit{stroke:rgba(126,196,255,.85);stroke-width:1.3}
+  .node{fill:#0c1730;stroke:var(--glow);stroke-width:1.1}
+  .node-core{fill:url(#coreGrad);stroke:none}
+  .pulse-dot{fill:#dcefff}
+
+  /* 3D — prototype grid, several shapes */
+  .proto-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  @media(max-width:640px){.proto-grid{grid-template-columns:1fr}}
+  .proto-cell{display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 6px;border:1px solid var(--panel-edge);border-radius:14px;background:radial-gradient(300px 160px at 50% 40%, rgba(20,34,66,.5), rgba(6,10,20,.5))}
+  .pScene{width:110px;height:110px;perspective:520px;display:flex;align-items:center;justify-content:center}
+  .cube{position:relative;transform-style:preserve-3d}
+  .c-cube{width:76px;height:76px;animation:rot 8s linear infinite}
+  .c-box{width:100px;height:46px;animation:rot 9s linear infinite reverse}
+  @keyframes rot{to{transform:rotateX(-22deg) rotateY(360deg)}}
+  .cube .f{position:absolute;border:1.4px solid rgba(126,196,255,.7);background:rgba(90,168,255,.07)}
+  .c-cube .f{width:76px;height:76px}
+  /* box faces: W=100, H=46, D=46 */
+  .c-box .bf-front,.c-box .bf-back{width:100px;height:46px}     /* facing ±Z */
+  .c-box .bf-right,.c-box .bf-left{width:46px;height:46px}       /* facing ±X */
+  .c-box .bf-top,.c-box .bf-bottom{width:100px;height:46px}      /* facing ±Y */
+  .pName{font-size:11px;color:var(--ink-3);letter-spacing:.04em}
+  /* horizontal cylinder */
+  .cyl3d{position:relative;width:110px;height:110px;transform-style:preserve-3d;animation:planeRot 9s linear infinite}
+  @keyframes planeRot{to{transform:rotateX(-18deg) rotateY(360deg)}}
+  .cyl3d .cyl-body{position:absolute;top:50%;left:50%;width:96px;height:44px;margin:-22px -48px;border-top:1.4px solid rgba(126,196,255,.75);border-bottom:1.4px solid rgba(126,196,255,.75);background:linear-gradient(180deg, rgba(90,168,255,.03), rgba(90,168,255,.12), rgba(90,168,255,.03))}
+  .cyl3d .cyl-cap{position:absolute;top:50%;left:50%;width:20px;height:44px;margin:-22px -10px;border:1.4px solid rgba(126,196,255,.7);border-radius:50%;background:rgba(90,168,255,.07)}
+  .cyl3d .cap-l{transform:translateX(-48px) rotateY(90deg)}
+  .cyl3d .cap-r{transform:translateX(48px) rotateY(90deg)}
+  .model-cap{font-size:12px;color:var(--ink-2);text-align:center;margin-top:12px}
+
+  /* signup */
+  .wl{max-width:500px;margin:0 auto;text-align:center}
+  .wl .field{margin-top:20px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+  .wl input{flex:1;min-width:220px;background:rgba(9,14,28,.8);border:1px solid var(--panel-edge);border-radius:12px;padding:14px 16px;color:var(--ink);font-size:15px;outline:none;transition:.2s}
+  .wl input:focus{border-color:var(--glow);box-shadow:0 0 0 3px rgba(90,168,255,.15)}
+  .btn{display:inline-block;text-decoration:none;text-align:center;background:linear-gradient(120deg,var(--glow),#3f83d6);color:#04101f;border:none;border-radius:12px;padding:14px 26px;font-size:15px;font-weight:600;cursor:pointer;box-shadow:0 8px 24px rgba(90,168,255,.35);transition:.2s}
+  .btn:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(90,168,255,.5)}
+  .wl .note{font-size:12px;color:var(--ink-3);margin-top:14px}
+
+  .seg-hint{margin-top:26px;text-align:center;font-size:12px;color:var(--ink-3)}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="topbar">
+    <div class="concept-tag">Concept preview</div>
+    <div class="navigator">
+      <div class="dial" id="dial">
+        <div class="track"></div>
+        <div class="track-glow"></div>
+        <!-- ticks + ball added by JS -->
+        <div class="hub"></div>
+        <div class="ball" id="ball"></div>
+      </div>
+      <div class="wordmark">
+        <div class="name">ORBION</div>
+        <div class="hint">drag the dot around the ring to explore</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slides" id="slides">
+
+    <!-- 1 -->
+    <section class="slide active" data-i="0">
+      <div class="hero-wrap">
+        <div>
+          <div class="eyebrow">Orbion</div>
+          <h1>Your own AI. On your machine.</h1>
+          <div class="feat-row">
+            <span class="feat">Runs locally</span>
+            <span class="feat">Private</span>
+            <span class="feat">No limits</span>
+          </div>
+        </div>
+        <div class="atom">
+          <div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div>
+          <div class="nucleus"></div>
+          <div class="e spin-e1"></div>
+          <div class="e spin-e2"></div>
+          <div class="e spin-e3"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2 -->
+    <section class="slide" data-i="1">
+      <span class="badge-soon">◇ In progress</span>
+      <h1>Train your own AI.</h1>
+      <p class="sub">It adapts to you. You shape what it becomes.</p>
+      <div class="panel" style="margin-top:16px">
+        <div class="train-atom">
+          <canvas id="trainCanvas"></canvas>
+          <div class="ta-core">YOU</div>
+          <div class="ta-orbit tao1"><span class="ta-e"></span></div>
+          <div class="ta-orbit tao2"><span class="ta-e"></span></div>
+          <div class="ta-orbit tao3"><span class="ta-e"></span></div>
+          <div class="ta-orbit tao4"><span class="ta-e"></span></div>
+          <div class="ta-orbit tao5"><span class="ta-e"></span></div>
+          <div class="ta-status">Shaping your AI…</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3 -->
+    <section class="slide" data-i="2">
+      <span class="badge-soon">◇ In progress</span>
+      <h1>Decision-making overview.</h1>
+      <p class="sub">An example of a fully trained AI.</p>
+      <div class="net-wrap" id="netHost"></div>
+    </section>
+
+    <!-- 4 -->
+    <section class="slide" data-i="3">
+      <span class="badge-live"><span class="pulse"></span> Working today</span>
+      <h1>Show things in 3D.</h1>
+      <p class="sub">Create anything in 3D.</p>
+      <div class="panel" style="margin-top:8px">
+        <div class="proto-grid">
+          <div class="proto-cell">
+            <div class="pScene"><div class="cube c-cube">
+              <div class="f" style="transform:translateZ(38px)"></div><div class="f" style="transform:rotateY(180deg) translateZ(38px)"></div>
+              <div class="f" style="transform:rotateY(90deg) translateZ(38px)"></div><div class="f" style="transform:rotateY(-90deg) translateZ(38px)"></div>
+              <div class="f" style="transform:rotateX(90deg) translateZ(38px)"></div><div class="f" style="transform:rotateX(-90deg) translateZ(38px)"></div>
+            </div></div>
+          </div>
+          <div class="proto-cell">
+            <div class="pScene"><div class="cube c-box">
+              <div class="f bf-front"  style="transform:translateZ(23px)"></div>
+              <div class="f bf-back"   style="transform:rotateY(180deg) translateZ(23px)"></div>
+              <div class="f bf-right"  style="transform:rotateY(90deg) translateZ(50px)"></div>
+              <div class="f bf-left"   style="transform:rotateY(-90deg) translateZ(50px)"></div>
+              <div class="f bf-top"    style="transform:rotateX(90deg) translateZ(23px)"></div>
+              <div class="f bf-bottom" style="transform:rotateX(-90deg) translateZ(23px)"></div>
+            </div></div>
+          </div>
+          <div class="proto-cell">
+            <div class="pScene"><div class="cyl3d">
+              <div class="cyl-body"></div>
+              <div class="cyl-cap cap-l"></div>
+              <div class="cyl-cap cap-r"></div>
+            </div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5 -->
+    <section class="slide" data-i="4">
+      <div class="wl">
+        <span class="badge-soon" style="margin:0 auto 14px">◇ Early access</span>
+        <h1>Sign up.</h1>
+        <p class="sub" style="margin:0 auto">Be first to train your own Orbion.</p>
+        <div class="field" style="justify-content:center">
+          <a class="btn" href="https://tally.so/r/yPkA2d" target="_blank" rel="noopener">Join the waitlist</a>
+        </div>
+        <div class="note">A concept preview of an early product. No spam.</div>
+      </div>
+    </section>
+
+  </div>
+
+  <div class="seg-hint">Drag the dot around the ring to move between sections · or use ← →</div>
+</div>
+
+<script>
+  const N=5;
+  const slides=[...document.querySelectorAll('.slide')];
+  const dial=document.getElementById('dial');
+  const ball=document.getElementById('ball');
+
+  // geometry of the ring
+  const R=75;               // radius the ball travels on (matches 172px dial)
+  // segment angles: put 5 evenly spaced positions, starting at top (-90deg)
+  const segAngles=[];
+  for(let i=0;i<N;i++){segAngles.push(-90 + i*(360/N));}
+
+  // add tick marks at each segment
+  segAngles.forEach(a=>{
+    const t=document.createElement('div');
+    t.className='tick';
+    const rad=a*Math.PI/180;
+    // position tick on ring, rotate to point outward
+    t.style.transform=`translate(-50%,-50%) rotate(${a+90}deg) translateY(-82px)`;
+    dial.appendChild(t);
+  });
+
+  let idx=0;
+  function placeBall(angleDeg){
+    const rad=angleDeg*Math.PI/180;
+    const x=Math.cos(rad)*R;
+    const y=Math.sin(rad)*R;
+    ball.style.transform=`translate(${x}px,${y}px)`;
+  }
+  function go(i){
+    idx=(i+N)%N;
+    slides.forEach((s,n)=>s.classList.toggle('active',n===idx));
+    placeBall(segAngles[idx]);
+  }
+  go(0);
+
+  // ---- drag logic: map pointer angle to nearest segment ----
+  let dragging=false;
+  function angleFromEvent(ev){
+    const r=dial.getBoundingClientRect();
+    const cx=r.left+r.width/2, cy=r.top+r.height/2;
+    const px=(ev.touches?ev.touches[0].clientX:ev.clientX);
+    const py=(ev.touches?ev.touches[0].clientY:ev.clientY);
+    return Math.atan2(py-cy,px-cx)*180/Math.PI;
+  }
+  function nearestSeg(angle){
+    let best=0,bestd=1e9;
+    segAngles.forEach((a,i)=>{
+      let d=Math.abs(((angle-a+540)%360)-180);
+      if(d<bestd){bestd=d;best=i;}
+    });
+    return best;
+  }
+  function onMove(ev){
+    if(!dragging)return;
+    ev.preventDefault();
+    const a=angleFromEvent(ev);
+    // ball follows finger continuously on the ring
+    const rad=a*Math.PI/180;
+    ball.style.transform=`translate(${Math.cos(rad)*R}px,${Math.sin(rad)*R}px)`;
+    const seg=nearestSeg(a);
+    if(seg!==idx){
+      idx=seg;
+      slides.forEach((s,n)=>s.classList.toggle('active',n===idx));
+    }
+  }
+  function endDrag(){
+    if(!dragging)return;
+    dragging=false;
+    placeBall(segAngles[idx]); // snap to segment
+    document.removeEventListener('mousemove',onMove);
+    document.removeEventListener('mouseup',endDrag);
+    document.removeEventListener('touchmove',onMove);
+    document.removeEventListener('touchend',endDrag);
+  }
+  function startDrag(ev){
+    dragging=true;
+    document.addEventListener('mousemove',onMove);
+    document.addEventListener('mouseup',endDrag);
+    document.addEventListener('touchmove',onMove,{passive:false});
+    document.addEventListener('touchend',endDrag);
+  }
+  ball.addEventListener('mousedown',startDrag);
+  ball.addEventListener('touchstart',startDrag,{passive:false});
+  // click anywhere on ring also jumps
+  dial.addEventListener('click',e=>{ if(e.target===ball)return; const a=angleFromEvent(e); go(nearestSeg(a)); });
+  document.addEventListener('keydown',e=>{if(e.key==='ArrowRight')go(idx+1);if(e.key==='ArrowLeft')go(idx-1);});
+
+  // ---- complex layered network graph with variable-labelled nodes ----
+  (function(){
+    const host=document.getElementById('netHost');
+    const W=820,H=400, padL=38, padR=38, top=34, bot=44;
+    const layers=[['x',11],['h',9],['z',13],['a',10],['z',13],['w',8],['σ',10],['ŷ',4]];
+    const nL=layers.length;
+    const uW=W-padL-padR, uH=H-top-bot;
+    const greek=['θ','σ','α','β','λ','μ','φ','ψ','ρ','τ','ω','γ','δ','ε','η','ζ'];
+    let cols=[];
+    layers.forEach((L,li)=>{
+      const x=padL+uW*(li/(nL-1));
+      let ys=[];const c=L[1];
+      for(let n=0;n<c;n++) ys.push(top + (c===1?uH/2:uH*(n/(c-1))));
+      cols.push({x,ys,sym:L[0]});
+    });
+    let svg='<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg">';
+    svg+='<defs><radialGradient id="coreGrad" cx="40%" cy="35%"><stop offset="0%" stop-color="#dcefff"/><stop offset="60%" stop-color="#4d8fe0"/><stop offset="100%" stop-color="#1b5299"/></radialGradient></defs>';
+    let edges=[];
+    // adjacency: for each layer, list of {toNode, x1,y1,x2,y2} from each node
+    let adj=[]; // adj[li][nodeIndex] = array of {j, x1,y1,x2,y2}
+    for(let li=0;li<nL-1;li++){
+      const a=cols[li],b=cols[li+1];
+      adj[li]=a.ys.map(()=>[]);
+      a.ys.forEach((y1,i)=>b.ys.forEach((y2,j)=>{
+        if(Math.random()<0.5){
+          const e={x1:a.x,y1,x2:b.x,y2};
+          edges.push(e);
+          adj[li][i].push({j,x1:a.x,y1,x2:b.x,y2});
+        }
+      }));
+      // guarantee every node has at least one outgoing edge (so a path can always continue)
+      a.ys.forEach((y1,i)=>{
+        if(adj[li][i].length===0){
+          const j=Math.floor(Math.random()*b.ys.length);
+          const e={x1:a.x,y1,x2:b.x,y2:b.ys[j]};
+          edges.push(e);
+          adj[li][i].push({j,x1:a.x,y1,x2:b.x,y2:b.ys[j]});
+        }
+      });
+    }
+    // ALL edges glowing (base glow), varied opacity for depth
+    edges.forEach(e=>{
+      const op=(0.30+Math.random()*0.45).toFixed(2);
+      svg+='<line class="edge-base" x1="'+e.x1+'" y1="'+e.y1+'" x2="'+e.x2+'" y2="'+e.y2+'" stroke="rgba(126,196,255,'+op+')" stroke-width="0.9"/>';
+    });
+    // nodes with values (decimal weights/activations — look like real NN numbers)
+    function val(){ const v=(Math.random()*2-1); return (v>=0?'+':'')+v.toFixed(2); }
+    cols.forEach((c,li)=>{
+      const isOut=li===nL-1;
+      c.ys.forEach((y,i)=>{
+        const r=isOut?12:9;
+        svg+='<circle class="'+(isOut?'node-core':'node')+'" cx="'+c.x+'" cy="'+y+'" r="'+r+'"/>';
+        const lab = val();
+        svg+='<text x="'+c.x+'" y="'+(y+2.5)+'" text-anchor="middle" font-size="6.5" fill="#bcd8ff" font-family="Georgia, serif">'+lab+'</text>';
+      });
+    });
+    // fast travelling dot
+    svg+='<circle class="pulse-dot" r="3.4" id="pdot" cx="'+cols[0].x+'" cy="'+cols[0].ys[0]+'"><animate attributeName="opacity" values="1;.5;1" dur="0.6s" repeatCount="indefinite"/></circle>';
+    svg+='</svg>';
+    host.innerHTML=svg;
+
+    function sub(n){const map={'0':'₀','1':'₁','2':'₂','3':'₃','4':'₄','5':'₅','6':'₆','7':'₇','8':'₈','9':'₉'};return (''+n).split('').map(d=>map[d]||d).join('');}
+
+    // pulse dot travels a COMPLETE path input→output, then restarts on a new path
+    const pdot=host.querySelector('#pdot');
+    function buildPath(){
+      // pick a random input node, then greedily follow a random edge layer by layer
+      let node=Math.floor(Math.random()*cols[0].ys.length);
+      let segs=[];
+      for(let li=0;li<nL-1;li++){
+        const options=adj[li][node];
+        const pick=options[Math.floor(Math.random()*options.length)];
+        segs.push({x1:pick.x1,y1:pick.y1,x2:pick.x2,y2:pick.y2});
+        node=pick.j;
+      }
+      return segs;
+    }
+    function travel(){
+      const path=buildPath();
+      let si=0;
+      function seg(){
+        if(si>=path.length){ setTimeout(travel,260); return; } // finished path → new path
+        const e=path[si], t0=performance.now(), dur=150;
+        function step(t){
+          const p=Math.min(1,(t-t0)/dur);
+          pdot.setAttribute('cx',e.x1+(e.x2-e.x1)*p);
+          pdot.setAttribute('cy',e.y1+(e.y2-e.y1)*p);
+          if(p<1)requestAnimationFrame(step);
+          else { si++; seg(); }
+        }
+        requestAnimationFrame(step);
+      }
+      seg();
+    }
+    travel();
+  })();
+
+  // ---- training slide: particles streaming toward the atom core ----
+  (function(){
+    const cv=document.getElementById('trainCanvas');
+    if(!cv)return;
+    const ctx=cv.getContext('2d');
+    let w,h,cx,cy;
+    function size(){const r=cv.getBoundingClientRect();w=cv.width=r.width;h=cv.height=r.height;cx=w/2;cy=h/2;}
+    size();window.addEventListener('resize',size);
+    let parts=[];
+    function spawn(){
+      const ang=Math.random()*Math.PI*2;
+      const dist=Math.max(w,h)*0.55;
+      parts.push({ang,dist,sp:0.004+Math.random()*0.007,r:Math.random()*1.5+0.4});
+    }
+    for(let i=0;i<48;i++)spawn();
+    function tick(){
+      ctx.clearRect(0,0,w,h);
+      parts.forEach(p=>{
+        p.dist*=(1-p.sp);
+        const x=cx+Math.cos(p.ang)*p.dist;
+        const y=cy+Math.sin(p.ang)*p.dist;
+        const alpha=Math.min(1,p.dist/130)*0.75;
+        ctx.beginPath();ctx.arc(x,y,p.r,0,Math.PI*2);
+        ctx.fillStyle='rgba(126,196,255,'+alpha.toFixed(2)+')';ctx.fill();
+        ctx.beginPath();ctx.moveTo(x,y);
+        ctx.lineTo(cx+Math.cos(p.ang)*(p.dist+12),cy+Math.sin(p.ang)*(p.dist+12));
+        ctx.strokeStyle='rgba(90,168,255,'+(alpha*0.25).toFixed(2)+')';ctx.lineWidth=0.6;ctx.stroke();
+      });
+      parts=parts.filter(p=>p.dist>40);
+      while(parts.length<48)spawn();
+      requestAnimationFrame(tick);
+    }
+    tick();
+  })();
+</script>
+</body>
+</html>
